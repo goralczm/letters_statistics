@@ -2,19 +2,10 @@ import collections
 import string
 import json
 import os
+import re
 
 alphabet = string.ascii_lowercase
 vowel = [*'aąeęiouóy']
-
-# Function takes list of lines and based on them counts occurances of each letter
-def occurances(letterBase):
-    alphabetDict = collections.defaultdict(int)
-    for line in letterBase:
-        cleanLine = line.strip()
-        for letter in cleanLine:
-            alphabetDict[letter] += 1
-    return alphabetDict
-
 
 # Sorts dictionary by values from lowest to highest
 def sortDictByVal(dict):
@@ -22,38 +13,34 @@ def sortDictByVal(dict):
 
 
 # Returns how many letters are in given dictionary containing letter occurances
-def totalLetters(occurancesDict):
-    return sum(occurancesDict.values())
+def totalLetters(occurances_dict):
+    return sum(occurances_dict.values())
 
 
 # Returns how many vowels are in given dictionary. containing letter occurances
-def vowelAmount(occurancesDict):
+def vowelAmount(occurances_dict):
     vowels = 0
-    for letter in occurancesDict.keys():
+    for letter in occurances_dict.keys():
         if (letter in vowel):
-            vowels += occurancesDict[letter]
+            vowels += occurances_dict[letter]
     return vowels
 
 
 # Return list of two items, first is the most commong letter, second is how many of them are in given occurances dictionary
-def mostCommonLetter(occurancesDict):
-    sortedDict = sortDictByVal(occurancesDict)
-    lastKey = list(sortedDict.keys())[-1]
-    return [lastKey, occurancesDict[lastKey]]
+def mostCommonLetter(occurances_dict):
+    sortedDict = sortDictByVal(occurances_dict)
+    last_key = list(sortedDict.keys())[-1]
+    return [last_key, occurances_dict[last_key]]
 
 
-# Returns occurances of given letter from occurances dictionary
-def letterOccurance(occurancesDict, letter):
-    return occurancesDict[letter]
-
-
+# Return formated percent amount of a in b
 def percentAmount(a, b):
     return round((a/b)*100, 2)
 
 
 def readStatistics(file_name):
     try:
-        with open(f'{file_name}_statistics.json', "r", encoding='utf-8') as jsonFile:
+        with open(f'text_statistics/{file_name}_statistics.json', "r", encoding='utf-8') as jsonFile:
             print('Reading json file')
             data = json.load(jsonFile)
             return data
@@ -63,13 +50,13 @@ def readStatistics(file_name):
 
 def saveStatistics(file_name):
     try:
-        with open(f'{file_name}.txt', 'r', encoding='utf-8') as wordsFile:
-            with open(f'{file_name}_statistics.json', 'w', encoding='utf-8') as words_stats_file:
+        with open(f'text_sources/{file_name}.txt', 'r', encoding='utf-8') as words_file:
+            with open(f'text_statistics/{file_name}_statistics.json', 'w', encoding='utf-8') as words_stats_file:
 
                 print('Saving statistics...')
 
                 statistics = {}
-                file_content = wordsFile.readlines()
+                file_content = words_file.readlines()
 
                 occurances = collections.defaultdict(int)
 
@@ -77,19 +64,23 @@ def saveStatistics(file_name):
                 longest_words = []
 
                 print('Counting letters...')
-
+                
                 for line in file_content:
                     clean_line = line.strip()
-
-                    for letter in clean_line:
-                        occurances[letter] += 1
+                    clean_line_no_special = re.sub('\W+', " ", clean_line)
+                    clean_line_no_special = re.sub('[0 - 9]', " ", clean_line_no_special)
+                    words = clean_line_no_special.split()
                     
-                    wordLen = len(clean_line)
-                    if (max_line_len < wordLen):
-                        max_line_len = wordLen
-                        longest_words = [clean_line]
-                    elif (max_line_len == wordLen):
-                        longest_words.append(clean_line)
+                    for word in words:
+                        for letter in word:
+                            occurances[letter.lower()] += 1
+                    
+                        word_len = len(word)
+                        if (max_line_len < word_len):
+                            max_line_len = word_len
+                            longest_words = [word]
+                        elif (max_line_len == word_len):
+                            longest_words.append(word)
 
                 print('Calculating statistics...')
 
@@ -145,9 +136,9 @@ def printFileStatistics(file_name, force_new_save = False):
     print(f'There are {longest_words[0]} longest words with {len(longest_words[1][0])} letters each')
     print(f'  First five longest words are "{", ".join(longest_words[1][0:5])}"')
 
-#files_to_test = ['slowa', 'words_alpha', 'pan-tadeusz']
-files_to_test = ['pan-tadeusz']
+files_to_test = ['slowa', 'words_alpha', 'pan-tadeusz', 'romeo_and_juliet', 'hamlet', 'rozprawka']
+#files_to_test = ['pan-tadeusz']
 for file in files_to_test:
     print(f'------------------------ {file}.txt ------------------------')
-    printFileStatistics(file, True)
+    printFileStatistics(file)
     print(f'------------------------ {file}.txt ------------------------\n')
