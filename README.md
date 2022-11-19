@@ -16,6 +16,8 @@ After few experiments with collecting letter occurances, most recursive letters,
 
 # Statistics
 
+These are few statistics that I gathered
+
 || English Words | Polish Words | Hamlet-EN | Hamlet-PL |
 |:--------|:--------:|:--------:|:--------:|:--------:|
 | Total Letters| 3494707 | 36090123 | 122288 | 144927 |
