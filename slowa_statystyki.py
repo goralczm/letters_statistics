@@ -3,14 +3,26 @@ import string
 import json
 import os
 import re
+from matplotlib import pyplot as plt
 
-alphabet = string.ascii_lowercase
+alphabet = string.ascii_lowercase+'ąćęłńóśźż'
 vowel = [*'aąeęiouóy']
 
 # Sorts dictionary by values from lowest to highest
 def sortDictByVal(dict):
     return {key: value for key, value in sorted(dict.items(), key=lambda item: item[1])}
 
+
+# Deletes keys that are not in alphabet
+def deleteNonAlphabeticalKeys(alphabet_dict):
+    dict_copy = dict(alphabet_dict)
+    keys_to_remove = []
+    for key in alphabet_dict.keys():
+        if key not in alphabet:
+            keys_to_remove.append(key)
+    for key in keys_to_remove:
+        del dict_copy[key]
+    return dict_copy
 
 # Returns how many letters are in given dictionary containing letter occurances
 def totalLetters(occurances_dict):
@@ -38,6 +50,7 @@ def percentAmount(a, b):
     return round((a/b)*100, 2)
 
 
+# Returns data from json file, if not tries to save one based on txt file
 def readStatistics(file_name):
     try:
         with open(f'text_statistics/{file_name}_statistics.json', "r", encoding='utf-8') as jsonFile:
@@ -48,6 +61,8 @@ def readStatistics(file_name):
         print('Trying to save statistics')
         return saveStatistics(file_name)
 
+
+# Returns file statistics if file was correctly saved
 def saveStatistics(file_name):
     try:
         with open(f'text_sources/{file_name}.txt', 'r', encoding='utf-8') as words_file:
@@ -82,9 +97,14 @@ def saveStatistics(file_name):
                         elif (max_line_len == word_len):
                             longest_words.append(word)
 
+                total_letters = totalLetters(occurances)
+
+                percent_occurances = {}
+                for letter, occurance in occurances.items():
+                    percent_occurances[letter] = percentAmount(occurance, total_letters)
+
                 print('Calculating statistics...')
 
-                total_letters = totalLetters(occurances)
         
                 most_common_letter = mostCommonLetter(occurances)
                 most_common_letter_percent = percentAmount(most_common_letter[1], total_letters)
@@ -98,6 +118,7 @@ def saveStatistics(file_name):
                 print('Combining statistics...')
                 
                 statistics['occurances'] = occurances
+                statistics['percent_occurances'] = percent_occurances
                 statistics['most_common_letter'] = [most_common_letter, most_common_letter_percent]
                 statistics['total_letters'] = total_letters
                 statistics['vowels'] = [vowel_amount, vowel_percent]
@@ -136,9 +157,34 @@ def printFileStatistics(file_name, force_new_save = False):
     print(f'There are {longest_words[0]} longest words with {len(longest_words[1][0])} letters each')
     print(f'  First five longest words are "{", ".join(longest_words[1][0:5])}"')
 
-files_to_test = ['slowa', 'words_alpha', 'pan-tadeusz', 'romeo_and_juliet', 'hamlet', 'rozprawka']
-#files_to_test = ['pan-tadeusz']
-for file in files_to_test:
-    print(f'------------------------ {file}.txt ------------------------')
-    printFileStatistics(file)
-    print(f'------------------------ {file}.txt ------------------------\n')
+    return statistics
+
+
+def testFiles(files_to_test, saveCharts=False):
+    for file in files_to_test:
+        print(f'------------------------ {file}.txt ------------------------')
+        statistics = printFileStatistics(file)
+
+        sorted_letters_occurances = deleteNonAlphabeticalKeys(dict(sorted(statistics['percent_occurances'].items())))
+
+        max_value_key = max(sorted_letters_occurances, key=sorted_letters_occurances.get)
+        max_value = sorted_letters_occurances[max_value_key]
+
+        #sorted_letters_occurances = {key: value for key, value in sorted_letters_occurances.items() if value > max_value/10}
+
+        letters = sorted_letters_occurances.keys()
+        letters_precent_occurances = sorted_letters_occurances.values()
+
+        plt.plot(letters, letters_precent_occurances, marker='.', label=file)
+
+        print(f'------------------------ {file}.txt ------------------------\n')
+
+    plt.xlabel('Letters')
+    plt.ylabel('Occurances %')
+    plt.title(f'Letter occurances in {" and ".join(files_to_test)}')
+    plt.legend()
+    if (saveCharts):
+        plt.savefig(f'charts/{"_".join(files_to_test)}.png')
+    plt.show()
+
+testFiles(['words_alpha', 'slowa', 'hamlet-pl', 'hamlet-en'])
