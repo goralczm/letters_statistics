@@ -16,7 +16,7 @@ After few experiments with collecting letter occurances, most recursive letters,
 
 # Statistics
 
-These are few statistics that I gathered
+These are few statistics that I gathered so far.
 
 || English Words | Polish Words | Hamlet-EN | Hamlet-PL |
 |:--------|:--------:|:--------:|:--------:|:--------:|
